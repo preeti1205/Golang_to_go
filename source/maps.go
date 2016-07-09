@@ -17,10 +17,8 @@ import (
 )
 
 func WordCount(s string) map[string]int {
-	//m := make(map[string]int)
 	table:= make(map[string]int)
 	var values []string = strings.Fields(s)
-	//fmt.Printf(values[0])
 
 	for _,val:= range values {
 		_, ok:= table[val]
@@ -31,7 +29,6 @@ func WordCount(s string) map[string]int {
 		}
 	}
 	return table
-	//return map[string]int{"x": 1}
 }
 
 func main() {
