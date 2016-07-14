@@ -26,28 +26,38 @@ package main
 
 import (
 	"fmt"
-	"time"
+	"math"
 )
 
-type MyError struct {
-	When time.Time
-	What string
-}
+func Sqrt(x float64) (float64, error) {
 
-func (e *MyError) Error() string {
-	return fmt.Sprintf("at %v, %s",
-		e.When, e.What)
-}
-
-func run() error {
-	return &MyError{
-		time.Now(),
-		"it didn't work",
+	if(x < 0){
+		return 0, ErrorHandler(x)
 	}
+	a:=float64(1)
+	b:= float64(0)
+
+	for math.Abs(b-a ) > 0.001{
+		b= a
+	a = a - ((a*a - x)/2*a)
+	}
+
+	return a, nil
+}
+
+type ErrNegativeSqrt float64
+
+func ErrorHandler(num float64) error{
+	return ErrNegativeSqrt(num)
+}
+
+func (e ErrNegativeSqrt) Error() string{
+	//Sprintf() results in creating a string without printing
+	//use Sprint() if you just want to concatentate without formatting (no %)
+	return fmt.Sprintf("math: cannot Sqrt Negative number: %g",float64(e))
 }
 
 func main() {
-	if err := run(); err != nil {
-		fmt.Println(err)
-	}
+	fmt.Println(Sqrt(2))
+	fmt.Println(Sqrt(-2))
 }
