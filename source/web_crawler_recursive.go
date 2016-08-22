@@ -1,5 +1,3 @@
-/*
-*/
 package main
 
 import (
@@ -12,42 +10,39 @@ type Fetcher interface {
 	Fetch(url string) (body string, urls []string, err error)
 }
 
+var seen = make(map[string]bool)
+var ch = make(chan string)
+var n int
+//var every chan map[string]bool
+
 // Crawl uses fetcher to recursively crawl
 // pages starting with url, to a maximum of depth.
 func Crawl(url string, depth int, fetcher Fetcher) {
 	// TODO: Fetch URLs in parallel.
 	// TODO: Don't fetch the same URL twice.
 	// This implementation doesn't do either:
-	seen := make(map[string]bool)
-	ch := make(chan []string)
-	var n int
 	seen[url] = true
 	n++
-	Extract(url, depth, fetcher, &ch)
-	for ;n >0; n-- {
-		list := <- ch
-	 	for _, u := range list {
-			if !seen[u] {
-				seen[u] = true
-				n++
-				go Extract(u, depth-1, fetcher, ch)
-			}
-		}
-	}
-	return
-}
-
-func Extract(u string, depth int, fetcher Fetcher, ch chan []string){
 	if depth <= 0 {
 		return
 	}
-	body, urls, err := fetcher.Fetch(u)
+	body, urls, err := fetcher.Fetch(url)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Printf("found: %s %q\n", u, body)
-	ch <-urls
+	fmt.Printf("found: %s %q\n", url, body)
+	for ;n >0; n-- {
+	for _, u := range urls {
+		if !seen[u] {
+			ch <- u
+			//n++
+			go Crawl(u, depth-1, fetcher)
+			<- ch
+		}
+	}
+	}
+	return
 }
 
 func main() {
