@@ -1,5 +1,4 @@
-/*
-*/
+
 package main
 
 import (
@@ -11,7 +10,7 @@ type Fetcher interface {
 	// a slice of URLs found on that page.
 	Fetch(url string) (body string, urls []string, err error)
 }
-
+//var seen = make(map[string]bool)
 // Crawl uses fetcher to recursively crawl
 // pages starting with url, to a maximum of depth.
 func Crawl(url string, depth int, fetcher Fetcher) {
@@ -23,7 +22,7 @@ func Crawl(url string, depth int, fetcher Fetcher) {
 	var n int
 	seen[url] = true
 	n++
-	Extract(url, depth, fetcher, &ch)
+	go Extract(url, depth, fetcher, ch)
 	for ;n >0; n-- {
 		list := <- ch
 	 	for _, u := range list {
@@ -44,9 +43,11 @@ func Extract(u string, depth int, fetcher Fetcher, ch chan []string){
 	body, urls, err := fetcher.Fetch(u)
 	if err != nil {
 		fmt.Println(err)
-		return
-	}
+		//return ----> why did it cause deadlock ??
+	} else {
 	fmt.Printf("found: %s %q\n", u, body)
+	}
+
 	ch <-urls
 }
 
